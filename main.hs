@@ -4,7 +4,6 @@ import Data.Map (Map)
 import Data.List
 import Data.Function
 
-
 data Vec3 = Vec3 Float Float Float 
 
 instance Show Vec3 where
@@ -41,7 +40,7 @@ rayAt :: Ray -> Float -> Vec3
 rayAt (Ray origin direction) t = addVector origin (multiplyVector direction t)
 color :: Ray -> Maybe Float -> Vec3
 
-color ray (Just t) = unitVector (rayAt ray t) `subtractVector` (Vec3 0 0 (-1))  -- Red if there is an intersection
+color ray (Just t) = unitVector (rayAt ray t) `subtractVector` (Vec3 0 0 (-1))
 color ray Nothing  = Vec3 0 0 0
 
 
@@ -71,8 +70,8 @@ vec3ToString (Vec3 x y z) = show (round (x * 255.999)) ++ " " ++ show (round (y*
 writeListToFile :: FilePath -> [Vec3] -> IO ()
 writeListToFile filePath items = do
     handle <- openFile filePath WriteMode
-    mapM_ (hPutStrLn handle) ["P3\n256 256\n255"] -- Write each item with a newline
-    mapM_ (hPutStrLn handle . vec3ToString) items  -- Write each item with a newline
+    mapM_ (hPutStrLn handle) ["P3\n256 256\n255"]e
+    mapM_ (hPutStrLn handle . vec3ToString) items
     hClose handle
 
 main :: IO ()

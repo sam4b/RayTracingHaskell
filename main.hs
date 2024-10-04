@@ -4,28 +4,13 @@ import Data.Map (Map)
 import Data.List
 import Data.Function
 
-data Vec3 = Vec3 Float Float Float 
-
-instance Show Vec3 where
-    show (Vec3 x y z) = show x ++ ", " ++ show y ++ ", " ++ show z
-    
-multiplyVector :: Vec3 -> Float -> Vec3
-multiplyVector (Vec3 x y z) a = Vec3 (x * a) (y * a) (z * a)
-
-unitVector :: Vec3 -> Vec3
-unitVector v@(Vec3 x y z) = multiplyVector v (1.0 / sqrt (x*x + y*y + z*z))
-
-addVector :: Vec3 -> Vec3 -> Vec3
-addVector (Vec3 a b c) (Vec3 d e f) = Vec3 (a + d) (b + e) (c + f)
-
-subtractVector :: Vec3 -> Vec3 -> Vec3
-subtractVector (Vec3 a b c) (Vec3 d e f) = Vec3 (a - d) (b - e) (c - f)
+import Vec3
 
 data Sphere = Sphere Float Vec3
 data Ray = Ray Vec3 Vec3
 
-raySphereIntersection :: Sphere -> Ray -> Maybe Float
-raySphereIntersection (Sphere radius center) (Ray origin direction) 
+testIntersection :: Sphere -> Ray -> Maybe Float
+testIntersection (Sphere radius center) (Ray origin direction) 
     | discriminant < 0 = Nothing
     | otherwise = Just t
   where
@@ -38,23 +23,22 @@ raySphereIntersection (Sphere radius center) (Ray origin direction)
 
 rayAt :: Ray -> Float -> Vec3
 rayAt (Ray origin direction) t = addVector origin (multiplyVector direction t)
-color :: Ray -> Maybe Float -> Vec3
 
+color :: Ray -> Maybe Float -> Vec3
 color ray (Just t) = unitVector (rayAt ray t) `subtractVector` (Vec3 0 0 (-1))
-color ray Nothing  = Vec3 0 0 0
+color ray Nothing = Vec3 0 0 0
 
 
 intersects :: Ray -> [Sphere] -> [Maybe Float]
 intersects ray [] = []
-intersects ray (sphere:spheres) = [raySphereIntersection sphere ray] ++ intersects ray spheres
+intersects ray (sphere:spheres) = [testIntersection sphere ray] ++ intersects ray spheres
 
 runIntersectionTests :: Ray -> [Sphere] -> Maybe Float
 runIntersectionTests ray (sphere:spheres) 
     | null intersections = Nothing
     | otherwise = Just (head (sort intersections))
     where 
-        ls = intersects ray (sphere:spheres)
-        intersections = [x | Just x <- ls]
+        intersections = [x | Just x <- intersects ray (sphere:spheres)]
 
 
 rayTrace :: [(Float, Float)] -> [Sphere] -> [Vec3]
@@ -70,7 +54,7 @@ vec3ToString (Vec3 x y z) = show (round (x * 255.999)) ++ " " ++ show (round (y*
 writeListToFile :: FilePath -> [Vec3] -> IO ()
 writeListToFile filePath items = do
     handle <- openFile filePath WriteMode
-    mapM_ (hPutStrLn handle) ["P3\n256 256\n255"]e
+    mapM_ (hPutStrLn handle) ["P3\n256 256\n255"]
     mapM_ (hPutStrLn handle . vec3ToString) items
     hClose handle
 

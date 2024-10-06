@@ -10,20 +10,22 @@ import Distribution.Simple.Test (test)
 data Sphere = Sphere Double Vec3
 data Ray = Ray Vec3 Vec3
 
-testIntersection :: Sphere -> Ray -> Maybe Float
+testIntersection :: Sphere -> Ray -> Maybe Double
 testIntersection (Sphere radius center) (Ray origin direction) 
     | discriminant < 0 = Nothing 
-    | otherwise = Just 5 --TBA
+    | otherwise = Just t
   where
     oc = subtractVector center origin
     a = dotProduct direction direction
     b = -2.0 * (dotProduct direction oc)
     c = (dotProduct oc oc) - (radius * radius)
     discriminant = b * b - 4 * a * c
+    t = (-1.0 * b - sqrt discriminant) / (2.0*a);
 
-
-color :: Maybe Float -> Ray -> Vec3
-color (Just t) _ = Vec3 1 0 0
+color :: Maybe Double -> Ray -> Vec3
+color (Just t) ray = multiplyVector (n `addVector` (Vec3 1 1 1)) 0.5 
+    where
+        n = unitVector ((rayAt ray t) `subtractVector` (Vec3 0 0 (-1)))
 color Nothing (Ray origin direction) = (multiplyVector (Vec3 1.0 1.0 1.0) (1.0-a)) `addVector` (multiplyVector (Vec3 0.5 0.7 1.0) a)
     where
         a = 0.5 * (y + 1)
